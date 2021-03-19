@@ -1,7 +1,7 @@
 package ch.epfl.dias.cs422.rel.early.volcano
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.Tuple
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{NilTuple, RLEColumn, Tuple}
 import ch.epfl.dias.cs422.helpers.store.rle.RLEStore
 import ch.epfl.dias.cs422.helpers.store.{ScannableTable, Store}
 import org.apache.calcite.plan.{RelOptCluster, RelOptTable, RelTraitSet}
@@ -44,15 +44,68 @@ class Scan protected (
     }
   }
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var columns: Seq[IndexedSeq[Tuple]] = IndexedSeq()
+  var emittedCount = 0
+  val totalColCount: Int = table.getRowType.getFieldCount
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def open(): Unit = {
+    // init variables
+    columns = IndexedSeq()
+    emittedCount = 0
+
+    // read in all columns
+    scannable match {
+      case rleStore: RLEStore => {
+        println(s"totalRowCount = $totalColCount")
+        var colCount = 0
+        for (i <- 0 until totalColCount) {
+          val rleCol = rleStore.getRLEColumn(colCount)
+          colCount += 1
+          //println(s"rleCol=$rleCol")
+          val col = decodeRleCol(rleCol)
+          //println(s"col=$col")
+          columns = columns :+ col
+        }
+      }
+    }
+  }
+
+  def decodeRleCol(rleCol: RLEColumn): IndexedSeq[Tuple] = {
+
+    var col = IndexedSeq[Tuple]()
+    for (i <- 0 until rleCol.length) {
+      val rleEntry = rleCol(i)
+      //println(s"   rleEntry = $rleEntry")
+      for (j <- 0 until rleEntry.length.toInt) {
+        col = col :+ rleEntry.value
+      }
+    }
+    col
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def next(): Option[Tuple] = {
+    if (columns.isEmpty) {
+      return NilTuple
+    }
+    val totalRowCount = columns(0).length
+    if (emittedCount < totalRowCount) {
+      // concatnate all columns' rowIdth entry together
+      var nextTuple:Tuple = IndexedSeq()
+      for (i <- 0 until columns.length) {
+        nextTuple = nextTuple ++ columns(i)(emittedCount)
+      }
+      emittedCount += 1
+      Some(nextTuple)
+    } else {
+      NilTuple
+    }
+  }
 
   /**
     * @inheritdoc
