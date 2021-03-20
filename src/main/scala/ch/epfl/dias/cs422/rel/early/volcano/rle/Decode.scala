@@ -17,15 +17,46 @@ class Decode protected (
     ](input)
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var inputTuples:IndexedSeq[Tuple] = IndexedSeq()
+  var emittedCount = 0
+
+  def RleEntryToTuples(rleEntry: RLEentry): IndexedSeq[Tuple] = {
+    var tuples: IndexedSeq[Tuple] = IndexedSeq()
+    for (i <- 0 until rleEntry.length.toInt ) {
+      tuples = tuples :+ rleEntry.value
+    }
+    tuples
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def open(): Unit = {
+    // init vars
+    inputTuples = IndexedSeq()
+    emittedCount = 0
+
+    // read all inputs
+    val iter = input.iterator
+    while (iter.hasNext) {
+      val nextInput = iter.next()
+      inputTuples = inputTuples ++ RleEntryToTuples(nextInput)
+    }
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def next(): Option[Tuple] = {
+    if (emittedCount < inputTuples.length ) {
+      val output = Some(inputTuples(emittedCount))
+      emittedCount += 1
+      output
+    } else {
+      NilTuple
+    }
+
+  }
 
   /**
     * @inheritdoc
