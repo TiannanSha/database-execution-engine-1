@@ -44,7 +44,7 @@ class FilterReconstructTransposeRule protected (config: RelRule.Config)
       )
 
       call.transformTo(
-        ???
+        recons.copy(recons.getLeft, filter.copy(filter.getTraitSet, recons.getRight, newCondition))
       )
     } else if (last < recons.getLeft.getRowType.getFieldCount) {
       /*
@@ -56,7 +56,7 @@ class FilterReconstructTransposeRule protected (config: RelRule.Config)
       val newCondition = filter.getCondition
 
       call.transformTo(
-        ???
+        recons.copy(filter.copy(filter.getTraitSet, recons.getLeft, newCondition), recons.getRight)
       )
     }
   }

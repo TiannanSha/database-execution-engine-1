@@ -1,7 +1,7 @@
 package ch.epfl.dias.cs422.rel.early.volcano.rle
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.{RLEentry, Tuple}
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{NilRLEentry, RLEentry, Tuple}
 import org.apache.calcite.rel.`type`.RelDataType
 import org.apache.calcite.rex.RexNode
 
@@ -32,18 +32,46 @@ class RLEProject protected (
   lazy val evaluator: Tuple => Tuple =
     eval(projects.asScala.toIndexedSeq, input.getRowType)
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var outputs:IndexedSeq[RLEentry] = IndexedSeq()
+  var emittedCount = 0
+
+  def projectRLE(rle:RLEentry) :RLEentry = {
+    RLEentry(rle.startVID, rle.length, evaluator(rle.value))
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[RLEentry] = ???
+  override def open(): Unit = {
+    // init vars
+    outputs = IndexedSeq()
+    emittedCount = 0
+
+    // read all inputs
+    val iter = input.iterator
+    while (iter.hasNext) {
+      val nextRLE = iter.next()
+      outputs = outputs :+ projectRLE(nextRLE)
+    }
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def next(): Option[RLEentry] = {
+    if (emittedCount < outputs.length) {
+      val output = outputs(emittedCount)
+      emittedCount += 1
+      Some(output)
+    } else {
+      NilRLEentry
+    }
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def close(): Unit = {
+
+  }
 }

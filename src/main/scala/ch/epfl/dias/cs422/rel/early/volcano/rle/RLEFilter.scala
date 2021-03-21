@@ -26,18 +26,44 @@ class RLEFilter protected (
     (t: Tuple) => evaluator(t).asInstanceOf[Boolean]
   }
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var outputs:IndexedSeq[RLEentry] = IndexedSeq()
+  var emittedCount = 0
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[RLEentry] = ???
+  override def open(): Unit = {
+    // init vars
+    outputs = IndexedSeq()
+    emittedCount = 0
+
+    // read all inputs
+    val iter = input.iterator
+    while (iter.hasNext) {
+      val nextRLE = iter.next()
+      if (predicate(nextRLE.value)){
+        outputs = outputs :+ nextRLE
+      }
+    }
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def next(): Option[RLEentry] = {
+    if (emittedCount < outputs.length) {
+      val output = outputs(emittedCount)
+      emittedCount += 1
+      Some(output)
+    } else {
+      NilRLEentry
+    }
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def close(): Unit = {
+
+  }
 }

@@ -22,7 +22,7 @@ class AggregateDecodeTransposeRule protected (config: RelRule.Config)
     val decode: LogicalDecode = call.rel(1)
 
     call.transformTo(
-      ???
+      decode.copy(agg.copy(agg.getTraitSet, decode.getInputs))
     )
   }
 }

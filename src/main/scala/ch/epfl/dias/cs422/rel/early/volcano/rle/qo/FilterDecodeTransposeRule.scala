@@ -2,7 +2,10 @@ package ch.epfl.dias.cs422.rel.early.volcano.rle.qo
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton.logical.LogicalDecode
 import org.apache.calcite.plan.{RelOptRuleCall, RelRule}
+import org.apache.calcite.rel.RelNode
 import org.apache.calcite.rel.logical.LogicalFilter
+
+import scala.jdk.CollectionConverters.MapHasAsJava
 
 /**
   * RelRule (optimization rule) that finds a filter above a decode
@@ -18,9 +21,22 @@ class FilterDecodeTransposeRule protected (config: RelRule.Config)
   override def onMatch(call: RelOptRuleCall): Unit = {
     val filter: LogicalFilter = call.rel(0)
     val decode: LogicalDecode = call.rel(1)
+    // my code
+    val equiv = Map(decode->filter).asJava
+    val decodeRel = decode.getInput
+    val filterRel = filter.getInput
+
+//    println("**** in onMatch *****")
+//    println(s"**call.rel=")
+//    println(s"**filter = $filter")
+//    println(s"**filter.getInput = ${filter.getInput}")
+//    println(s"**decode = $decode")
+//    println(s"**decode.getInput = ${decode.getInput}")
 
     call.transformTo(
-      ???
+      // mycode
+      decode.copy(filter.copy(filter.getTraitSet, decode.getInput, filter.getCondition))
+      //decode
     )
   }
 }
