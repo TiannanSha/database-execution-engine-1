@@ -35,5 +35,20 @@ class Filter protected (
   /**
     * @inheritdoc
     */
-  def execute(): IndexedSeq[HomogeneousColumn] = ???
+  def execute(): IndexedSeq[HomogeneousColumn] = {
+    // read all input cols
+    var inputCols:IndexedSeq[HomogeneousColumn] = input.execute()
+
+    // use mappredicate to turn all tuples (as cols, except old sel vec) into a selection vec
+    // only tuples that were active and pass the filter can go on
+    val oldSelectVec = inputCols(inputCols.length-1)
+    var newSelectVec = mappredicate(inputCols.dropRight(1)).toIndexedSeq
+    newSelectVec = newSelectVec.zip(oldSelectVec).map{
+      case(bool1, bool2) => bool1 && bool2.asInstanceOf[Boolean]
+    }
+
+    // update the selection vector
+    val outputs = inputCols.dropRight(1) :+ toHomogeneousColumn(newSelectVec)
+    outputs
+  }
 }

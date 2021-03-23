@@ -27,5 +27,21 @@ class Scan protected(
   /**
    * @inheritdoc
    */
-  def execute(): IndexedSeq[HomogeneousColumn] = ???
+  def execute(): IndexedSeq[HomogeneousColumn] = {
+    val numCol = table.getRowType.getFieldCount
+    val numRow = scannable.getRowCount.toInt
+
+    var outputs:IndexedSeq[HomogeneousColumn] = IndexedSeq()
+    // add all attribute columns
+    for (i <- 0 until numCol) {
+      val col:HomogeneousColumn = scannable.getColumn(i)
+      outputs = outputs :+ col
+    }
+    // add selection vector column
+    var svCol:Column = IndexedSeq()
+    for (i <- 0 until numRow) {
+      svCol = svCol :+ true
+    }
+    outputs :+ svCol
+  }
 }

@@ -19,8 +19,6 @@ class Join(
     with ch.epfl.dias.cs422.helpers.rel.early.operatoratatime.Operator {
 
 
-
-
   def getKeyAsTuple(tuple: Tuple, keyIndices:IndexedSeq[Int]): Tuple = {
     var key = IndexedSeq[Any]()
     for (i <- keyIndices) {
@@ -33,8 +31,6 @@ class Join(
    * @inheritdoc
    */
   override def execute(): IndexedSeq[Column] = {
-
-    println("*** in join")
 
     var allJoinedTuples = IndexedSeq[Tuple]()
     var nextTupleInd = 0
@@ -114,7 +110,7 @@ class Join(
           val matchedLeftTuples = leftHashmap(rightKey)
           for (l <- matchedLeftTuples) {
             var joinedTuple = l ++ nextRight
-            println(s"*** joinedTuple = $joinedTuple")
+            //println(s"*** joinedTuple = $joinedTuple")
             //allJoinedTuples = allJoinedTuples :+ joinedTuple
             for (i <- joinedTuple.indices) {
               outputCols(i) = outputCols(i) :+ joinedTuple(i)
@@ -130,10 +126,6 @@ class Join(
     for (i <- 0 until outputRowCount) {
       newSelVec = newSelVec :+ true
     }
-    println(s"*** leftCols = $leftCols")
-    println(s"*** rightCols = $rightCols")
-    println("***outputCols")
-    outputCols.foreach(println)
     outputCols.toIndexedSeq :+ newSelVec
 
   }

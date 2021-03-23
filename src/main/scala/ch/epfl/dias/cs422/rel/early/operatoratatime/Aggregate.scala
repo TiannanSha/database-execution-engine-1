@@ -43,7 +43,6 @@ class Aggregate protected (
     while (inputIter.hasNext){
       inputCols = inputCols :+ inputIter.next
     }
-    println(s"**inputCols = $inputCols")
 
     // if input is empty, nothing else to do
     if (inputCols.isEmpty) return inputCols
@@ -52,8 +51,7 @@ class Aggregate protected (
     val numTuple = inputCols(0).length
     var inputTuplesGrouped = Map[IndexedSeq[Any], IndexedSeq[Tuple]]()
     val oldSelectVec = inputCols(inputCols.length-1)
-    println(s"*** oldSelectVec = $oldSelectVec")
-    println(s"*** numTuple = $numTuple")
+
     for (i <- 0 until numTuple) {
       if (oldSelectVec(i).asInstanceOf[Boolean]) {
         // construct an active tuple (without the selection boolean)
@@ -62,7 +60,7 @@ class Aggregate protected (
         for (j <- 0 until inputCols.length - 1) {
           t = t :+ inputCols(j)(i)
         }
-        println(s"****t=$t")
+
         // insert t to its group
         var k = getKey(t)
         // if key already exists, append to the list
@@ -75,8 +73,6 @@ class Aggregate protected (
         }
       }
     }
-    println(s"***inputTuplesGrouped = ${inputTuplesGrouped}")
-
 
     var outputCols:Array[Column] = Array()
     // if all groups are empty and groupby clause is empty, return empty value for each agg
@@ -121,7 +117,7 @@ class Aggregate protected (
         var aggedVal = mappedGroup.reduce(agg.reduce)
         aggedTuple = aggedTuple :+ aggedVal
       }
-      println(s"**** aggedTuple = ${aggedTuple}")
+
       // insert aggedTuple into outputCols by updating each col
       for (i <- aggedTuple.indices) {
         outputCols(i) = outputCols(i) :+ aggedTuple(i)
@@ -129,9 +125,7 @@ class Aggregate protected (
       // add a true to the last col
       outputCols(outputCols.length-1) = outputCols(outputCols.length-1) :+ true
     }
-    println(s"***outputCols")
-    println(s"***outputCols.length = ${outputCols.length}")
-    outputCols.foreach(println)
+
     outputCols.toIndexedSeq
   }
 }

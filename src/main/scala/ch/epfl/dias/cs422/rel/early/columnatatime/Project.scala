@@ -22,10 +22,8 @@ class Project protected (
     with ch.epfl.dias.cs422.helpers.rel.early.columnatatime.Operator {
 
   /**
-    * Function that, when given a (non-NilTuple) tuple produced by the [[input]] operator,
-    * it returns a new tuple composed of the evaluated projections [[projects]]
-   *
-   * FIXME
+    * Functions that each of takes the input columns (without selection vec) and produces
+    * a column of all projected tuples
     */
   lazy val evals: IndexedSeq[IndexedSeq[HomogeneousColumn] => HomogeneousColumn] =
     projects.asScala.map(e => map(e, input.getRowType, isFilterCondition = false)).toIndexedSeq
@@ -33,5 +31,14 @@ class Project protected (
   /**
    * @inheritdoc
    */
-  def execute(): IndexedSeq[HomogeneousColumn] = ???
+  def execute(): IndexedSeq[HomogeneousColumn] = {
+    val inputCols: IndexedSeq[HomogeneousColumn] = input.execute
+    val inputColsNoSV = inputCols.dropRight(1)  // exclude the selection vector
+    val oldSelVec = inputCols(inputCols.length-1)
+    var outputCols: IndexedSeq[HomogeneousColumn] = IndexedSeq()
+    for (e <- evals) {
+      outputCols = outputCols :+ e(inputColsNoSV)
+    }
+    outputCols :+ oldSelVec
+  }
 }
