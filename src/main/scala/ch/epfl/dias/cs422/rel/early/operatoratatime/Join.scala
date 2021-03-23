@@ -38,10 +38,11 @@ class Join(
     var leftHashmap = scala.collection.mutable.HashMap.empty[Tuple, IndexedSeq[Tuple]]
 
     // read all cols from left
-    var leftIter = left.iterator
-    while (leftIter.hasNext) {
-      leftCols = leftCols :+ leftIter.next()
-    }
+//    var leftIter = left.iterator
+//    while (leftIter.hasNext) {
+//      leftCols = leftCols :+ leftIter.next()
+//    }
+    leftCols = left.execute()
 
     // if there are no rows from left, no more to do
     if (leftCols.isEmpty) return leftCols
@@ -72,10 +73,11 @@ class Join(
 
     // read all columns from right
     var rightCols:IndexedSeq[Column] = IndexedSeq()
-    val rightIter = right.iterator
-    while (rightIter.hasNext) {
-      rightCols = rightCols :+ rightIter.next()
-    }
+//    val rightIter = right.iterator
+//    while (rightIter.hasNext) {
+//      rightCols = rightCols :+ rightIter.next()
+//    }
+    rightCols = right.execute()
 
     // if right is empty, nothing to do
     if (rightCols.isEmpty) return rightCols

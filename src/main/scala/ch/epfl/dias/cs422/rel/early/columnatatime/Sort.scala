@@ -54,22 +54,79 @@ class Sort protected (
    * @inheritdoc
    */
   override def execute(): IndexedSeq[HomogeneousColumn] = {
-    // read all input cols
-    var inputCols:IndexedSeq[HomogeneousColumn] = input.execute()
+//    // read all input cols
+//    var inputCols:IndexedSeq[HomogeneousColumn] = input.execute()
+//
+//    // if input is empty, nothing to do
+//    if (inputCols.isEmpty) return inputCols
+//
+//    // reconstruct each active tuple and insert into the priority queue
+//    val numTuple = inputCols(0).size
+//    var pq = collection.mutable.PriorityQueue[Tuple]()(TupleOrdering)
+//    val oldSelectVec = inputCols(inputCols.length-1).toIndexedSeq
+//    for (i <- 0 until numTuple) {
+//      if (oldSelectVec(i).asInstanceOf[Boolean]) {
+//        // construct an active tuple (without the selection boolean)
+//        var t: Tuple = IndexedSeq()
+//        for (j <- 0 until inputCols.length - 1) {
+//          t = t :+ inputCols(j).toIndexedSeq(i)
+//        }
+//
+//        // insert constructed tuple into priority queue
+//        pq.enqueue(t)
+//      }
+//    }
+//
+//    // extract required number of best tuples or all tuples by
+//    // selecting top *nTop* tuples and then drop *nDrop* tuples
+//    var nDrop = 0
+//    var nTop = 0
+//    if (offset.isEmpty) {
+//      nDrop = 0
+//    } else {
+//      nDrop = offset.get
+//    }
+//
+//    if (fetch.isDefined) {
+//      // when fetch is specified, take the min(pq.size, fetch) number of tuples
+//      nTop = nDrop + Math.min(fetch.get, pq.size)
+//    } else {
+//      // when not specifying fetch, want all available tuples
+//      nTop = pq.size
+//    }
+//
+//    // init outputCols with empty columns
+//    var outputCols:Array[Column] = Array()
+//    for (i <- inputCols.indices) {
+//      outputCols = outputCols :+ IndexedSeq()
+//    }
+//
+//    for (i <- 1 to nTop) {
+//      //outputTuples = outputTuples :+ pq.dequeue()
+//      // add each tuple by updating each col
+//      val t:Tuple = pq.dequeue()
+//      for (j <- t.indices) {
+//        outputCols(j) = outputCols(j) :+ t(j)
+//      }
+//      outputCols(outputCols.length-1) = outputCols(outputCols.length-1) :+ true
+//    }
+//    outputCols.map(col=>toHomogeneousColumn(col)).toIndexedSeq
+// read all input cols
+   val inputCols = input.execute().map(hCol => hCol.toIndexedSeq) // hcol to normal col
 
     // if input is empty, nothing to do
-    if (inputCols.isEmpty) return inputCols
+    if (inputCols.isEmpty) return inputCols.map(col=>toHomogeneousColumn(col))
 
     // reconstruct each active tuple and insert into the priority queue
-    val numTuple = inputCols(0).size
+    val numTuple = inputCols(0).length
     var pq = collection.mutable.PriorityQueue[Tuple]()(TupleOrdering)
-    val oldSelectVec = inputCols(inputCols.length-1).toIndexedSeq
+    val oldSelectVec = inputCols(inputCols.length-1)
     for (i <- 0 until numTuple) {
       if (oldSelectVec(i).asInstanceOf[Boolean]) {
         // construct an active tuple (without the selection boolean)
         var t: Tuple = IndexedSeq()
         for (j <- 0 until inputCols.length - 1) {
-          t = t :+ inputCols(j).toIndexedSeq(i)
+          t = t :+ inputCols(j)(i)
         }
 
         // insert constructed tuple into priority queue
@@ -110,6 +167,6 @@ class Sort protected (
       }
       outputCols(outputCols.length-1) = outputCols(outputCols.length-1) :+ true
     }
-    outputCols.map(col=>toHomogeneousColumn(col)).toIndexedSeq
+    outputCols.toIndexedSeq.map(col => toHomogeneousColumn(col))
   }
 }

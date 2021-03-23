@@ -55,11 +55,12 @@ class Sort protected (
    */
   override def execute(): IndexedSeq[Column] = {
     // read all input cols
-    var inputCols:IndexedSeq[Column] = IndexedSeq()
-    val iter = input.iterator
-    while (iter.hasNext) {
-      inputCols = inputCols :+ iter.next()
-    }
+//    var inputCols:IndexedSeq[Column] = IndexedSeq()
+//    val iter = input.iterator
+//    while (iter.hasNext) {
+//      inputCols = inputCols :+ iter.next()
+//    }
+    val inputCols = input.execute()
 
     // if input is empty, nothing to do
     if (inputCols.isEmpty) return inputCols

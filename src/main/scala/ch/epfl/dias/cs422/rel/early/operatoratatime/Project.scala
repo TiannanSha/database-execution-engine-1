@@ -33,13 +33,14 @@ class Project protected (
    * @inheritdoc
    */
   def execute(): IndexedSeq[Column] = {
-    var inputCols:IndexedSeq[Column] = IndexedSeq()
+//    var inputCols:IndexedSeq[Column] = IndexedSeq()
     var projectedTuples:IndexedSeq[Tuple] = IndexedSeq()
-    val inputIter = input.iterator
-    // read all columns
-    while (inputIter.hasNext){
-      inputCols = inputCols :+ inputIter.next
-    }
+//    val inputIter = input.iterator
+//    // read all columns
+//    while (inputIter.hasNext){
+//      inputCols = inputCols :+ inputIter.next
+//    }
+    val inputCols = input.execute()
 
     // if input is empty, nothing else to do
     if (inputCols.isEmpty) return inputCols

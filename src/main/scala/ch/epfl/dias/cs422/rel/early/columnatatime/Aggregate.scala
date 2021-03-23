@@ -37,16 +37,103 @@ class Aggregate protected (
    * @inheritdoc
    */
   override def execute(): IndexedSeq[HomogeneousColumn] = {
-    var inputCols: IndexedSeq[HomogeneousColumn] = IndexedSeq()
-    inputCols = input.execute()
+//    var inputCols: IndexedSeq[HomogeneousColumn] = IndexedSeq()
+//    inputCols = input.execute()
+//
+//    // if input is empty, nothing else to do
+//    if (inputCols.isEmpty) return inputCols
+//
+//    // if input is not empty, reconstruct each active tuple and insert into its group
+//    val numTuple = inputCols(0).size
+//    var inputTuplesGrouped = Map[IndexedSeq[Any], IndexedSeq[Tuple]]()
+//    val oldSelectVec = inputCols(inputCols.length - 1).toIndexedSeq
+//
+//    for (i <- 0 until numTuple) {
+//      if (oldSelectVec(i).asInstanceOf[Boolean]) {
+//        // construct an active tuple (without the selection boolean)
+//        // and then insert into its group
+//        var t: Tuple = IndexedSeq()
+//        for (j <- 0 until inputCols.length - 1) {
+//          t = t :+ inputCols(j).toIndexedSeq(i)
+//        }
+//
+//        // insert t to its group
+//        var k = getKey(t)
+//        // if key already exists, append to the list
+//        // if key is new, add (key, listOfTuple) to the dictionary
+//        var groupK = inputTuplesGrouped.get(k)
+//        if (groupK.isEmpty)
+//          inputTuplesGrouped += (k -> IndexedSeq(t))
+//        else {
+//          inputTuplesGrouped += (k -> groupK.get.appended(t))
+//        }
+//      }
+//    }
+//
+//    var outputCols: Array[Column] = Array()
+//    // if all groups are empty and groupby clause is empty, return empty value for each agg
+//    if (inputTuplesGrouped.isEmpty && groupSet.isEmpty) {
+//      // init outputcols with empty columns
+//      for (i <- aggCalls.indices) {
+//        outputCols = outputCols :+ IndexedSeq()
+//      }
+//      // insert output tuples by updating col by col
+//      var aggedTuple: Tuple = IndexedSeq()
+//      for (i <- aggCalls.indices) {
+//        val agg = aggCalls(i)
+//        outputCols(i) = outputCols(i) :+ agg.emptyValue
+//        //aggedTuple = aggedTuple :+ agg.emptyValue
+//      }
+//      // add the selection vector, which is Vec(true)
+//      outputCols = outputCols :+ IndexedSeq(true)
+//      return outputCols.map(col=>toHomogeneousColumn(col)).toIndexedSeq
+//    }
+//
+//    // aggregate each non-empty groups
+//    // init outputCols
+//    outputCols = Array()
+//
+//    // init outputCols with (keyLen + aggedValCount + 1) empty columns
+//    val lenAggedTuple: Int =
+//      inputTuplesGrouped.keys.head.length + aggCalls.length
+//    for (i <- 0 until lenAggedTuple) {
+//      outputCols = outputCols :+ IndexedSeq()
+//    }
+//    outputCols = outputCols :+ IndexedSeq() // add the col as selection vec
+//
+//    for (key <- inputTuplesGrouped.keys) {
+//      var group = inputTuplesGrouped(key)
+//      var aggedTuple: Tuple = IndexedSeq()
+//      // add keys first
+//      aggedTuple = aggedTuple ++ key.asInstanceOf[Tuple]
+//      // for each aggregation, map group to agg args and reduce to get the final aggregated value
+//      // append all the aggregated values to get final aggregated tuple for a group
+//      for (agg <- aggCalls) {
+//        var mappedGroup = group.map(tuple => agg.getArgument(tuple))
+//        var aggedVal = mappedGroup.reduce(agg.reduce)
+//        aggedTuple = aggedTuple :+ aggedVal
+//      }
+//      //println(aggedTuple)
+//
+//      // insert aggedTuple into outputCols by updating each col
+//      for (i <- aggedTuple.indices) {
+//        outputCols(i) = outputCols(i) :+ aggedTuple(i)
+//      }
+//      // add a true to the last col
+//      outputCols(outputCols.length - 1) = outputCols(outputCols.length - 1) :+ true
+//    }
+//    //println(s"outputCols = ${outputCols}")
+//    outputCols.map(col => toHomogeneousColumn(col)).toIndexedSeq
+    //var inputCols:IndexedSeq[Column] = IndexedSeq()
+    val inputCols = input.execute().map(hCol => hCol.toIndexedSeq)
 
     // if input is empty, nothing else to do
-    if (inputCols.isEmpty) return inputCols
+    if (inputCols.isEmpty) return inputCols.map(col=>toHomogeneousColumn(col))
 
     // if input is not empty, reconstruct each active tuple and insert into its group
-    val numTuple = inputCols(0).size
+    val numTuple = inputCols(0).length
     var inputTuplesGrouped = Map[IndexedSeq[Any], IndexedSeq[Tuple]]()
-    val oldSelectVec = inputCols(inputCols.length - 1).toIndexedSeq
+    val oldSelectVec = inputCols(inputCols.length-1)
 
     for (i <- 0 until numTuple) {
       if (oldSelectVec(i).asInstanceOf[Boolean]) {
@@ -54,7 +141,7 @@ class Aggregate protected (
         // and then insert into its group
         var t: Tuple = IndexedSeq()
         for (j <- 0 until inputCols.length - 1) {
-          t = t :+ inputCols(j).toIndexedSeq(i)
+          t = t :+ inputCols(j)(i)
         }
 
         // insert t to its group
@@ -70,7 +157,7 @@ class Aggregate protected (
       }
     }
 
-    var outputCols: Array[Column] = Array()
+    var outputCols:Array[Column] = Array()
     // if all groups are empty and groupby clause is empty, return empty value for each agg
     if (inputTuplesGrouped.isEmpty && groupSet.isEmpty) {
       // init outputcols with empty columns
@@ -78,7 +165,7 @@ class Aggregate protected (
         outputCols = outputCols :+ IndexedSeq()
       }
       // insert output tuples by updating col by col
-      var aggedTuple: Tuple = IndexedSeq()
+      var aggedTuple:Tuple = IndexedSeq()
       for (i <- aggCalls.indices) {
         val agg = aggCalls(i)
         outputCols(i) = outputCols(i) :+ agg.emptyValue
@@ -86,7 +173,7 @@ class Aggregate protected (
       }
       // add the selection vector, which is Vec(true)
       outputCols = outputCols :+ IndexedSeq(true)
-      return outputCols.map(col=>toHomogeneousColumn(col)).toIndexedSeq
+      return outputCols.toIndexedSeq.map(col=>toHomogeneousColumn(col))
     }
 
     // aggregate each non-empty groups
@@ -94,7 +181,7 @@ class Aggregate protected (
     outputCols = Array()
 
     // init outputCols with (keyLen + aggedValCount + 1) empty columns
-    val lenAggedTuple: Int =
+    val lenAggedTuple:Int =
       inputTuplesGrouped.keys.head.length + aggCalls.length
     for (i <- 0 until lenAggedTuple) {
       outputCols = outputCols :+ IndexedSeq()
@@ -103,7 +190,7 @@ class Aggregate protected (
 
     for (key <- inputTuplesGrouped.keys) {
       var group = inputTuplesGrouped(key)
-      var aggedTuple: Tuple = IndexedSeq()
+      var aggedTuple:Tuple = IndexedSeq()
       // add keys first
       aggedTuple = aggedTuple ++ key.asInstanceOf[Tuple]
       // for each aggregation, map group to agg args and reduce to get the final aggregated value
@@ -113,16 +200,15 @@ class Aggregate protected (
         var aggedVal = mappedGroup.reduce(agg.reduce)
         aggedTuple = aggedTuple :+ aggedVal
       }
-      //println(aggedTuple)
 
       // insert aggedTuple into outputCols by updating each col
       for (i <- aggedTuple.indices) {
         outputCols(i) = outputCols(i) :+ aggedTuple(i)
       }
       // add a true to the last col
-      outputCols(outputCols.length - 1) = outputCols(outputCols.length - 1) :+ true
+      outputCols(outputCols.length-1) = outputCols(outputCols.length-1) :+ true
     }
-    //println(s"outputCols = ${outputCols}")
-    outputCols.map(col => toHomogeneousColumn(col)).toIndexedSeq
+
+    outputCols.toIndexedSeq.map(col=>toHomogeneousColumn(col))
   }
 }

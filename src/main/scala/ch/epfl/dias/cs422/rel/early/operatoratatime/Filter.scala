@@ -30,12 +30,13 @@ class Filter protected (
    * @inheritdoc
    */
   def execute(): IndexedSeq[Column] = {
-    var inputCols:IndexedSeq[Column] = IndexedSeq()
-    val inputIter = input.iterator
-    // read all columns
-    while (inputIter.hasNext){
-      inputCols = inputCols :+ inputIter.next
-    }
+//    var inputCols:IndexedSeq[Column] = IndexedSeq()
+//    val inputIter = input.iterator
+//    // read all columns
+//    while (inputIter.hasNext){
+//      inputCols = inputCols :+ inputIter.next
+//    }
+    var inputCols = input.execute()
 
     // if input is empty, nothing else to do
     if (inputCols.isEmpty) return inputCols
