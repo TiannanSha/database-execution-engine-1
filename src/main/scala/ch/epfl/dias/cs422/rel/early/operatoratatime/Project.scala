@@ -32,5 +32,49 @@ class Project protected (
   /**
    * @inheritdoc
    */
-  def execute(): IndexedSeq[Column] = ???
+  def execute(): IndexedSeq[Column] = {
+    var inputCols:IndexedSeq[Column] = IndexedSeq()
+    var projectedTuples:IndexedSeq[Tuple] = IndexedSeq()
+    val inputIter = input.iterator
+    // read all columns
+    while (inputIter.hasNext){
+      inputCols = inputCols :+ inputIter.next
+    }
+
+    // if input is empty, nothing else to do
+    if (inputCols.isEmpty) return inputCols
+
+    // if input is not empty, project each tuple
+    val numTuple = inputCols(0).length
+    for (i <- 0 until numTuple) {
+      // construct a tuple (without the selection boolean)
+      var t:Tuple = IndexedSeq()
+      for (j <- 0 until inputCols.length-1) {
+        t = t :+ inputCols(j)(i)
+      }
+      // project the reconstructed tuple
+      projectedTuples = projectedTuples :+ evaluator(t)
+      //val projected = evaluator(t)
+    }
+
+    // if there's no tuple, map each input col to an empty col
+    if (projectedTuples.isEmpty) return inputCols.map(col => IndexedSeq())
+
+    // if there are some tuples, add each column of projected tuples
+    val numProjectedCol = projectedTuples(0).length
+    var outputCols:IndexedSeq[Column] = IndexedSeq()
+    // add column one by one
+    for (i <- 0 until numProjectedCol) {
+      var col:Column = IndexedSeq()
+      for (j <- projectedTuples.indices) {
+        val t = projectedTuples(j)
+        col = col :+ t(i)
+      }
+      outputCols = outputCols :+ col
+    }
+    println(s"projectedTuples = $projectedTuples")
+    println(s"In projection, outputCols = $outputCols")
+    // add the selection vector
+    outputCols :+ inputCols(inputCols.length-1)
+  }
 }

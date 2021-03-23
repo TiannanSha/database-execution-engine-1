@@ -24,8 +24,23 @@ class Scan protected(
     table.unwrap(classOf[ScannableTable])
   ).asInstanceOf[ColumnStore]
 
+  val numCol = table.getRowType.getFieldCount
+  val numRow = scannable.getRowCount.toInt
   /**
    * @inheritdoc
    */
-  def execute(): IndexedSeq[Column] = ???
+  def execute(): IndexedSeq[Column] = {
+    var outputs:IndexedSeq[Column] = IndexedSeq()
+    // add all attribute columns
+    for (i <- 0 until numCol) {
+      val col:Column = scannable.getColumn(i).toIndexedSeq
+      outputs = outputs :+ col
+    }
+    // add selection vector column
+    var svCol:Column = IndexedSeq()
+    for (i <- 0 until numRow) {
+      svCol = svCol :+ true
+    }
+    outputs :+ svCol
+  }
 }

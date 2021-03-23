@@ -64,11 +64,11 @@ class Join(
     // concatnating with all tuples in the bucket with same key
     var rightIter = right.iterator
     var rightCount = 0
-    var rightTuples = IndexedSeq[Tuple]()
+    //var rightTuples = IndexedSeq[Tuple]()
     while (rightIter.hasNext) {
       rightCount += 1
       var nextRight = rightIter.next()
-      rightTuples = rightTuples :+ nextRight
+      //rightTuples = rightTuples :+ nextRight
       val rightKey = getKeyAsTuple(nextRight, getRightKeys)
       if (leftHashmap.contains(rightKey)) {
         // found matching left key, join with each member in the group
