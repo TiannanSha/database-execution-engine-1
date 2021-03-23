@@ -63,11 +63,11 @@ class Sort protected (
     */
   override def open(): Unit = {
 
-    val fieldCollIter = collation.getFieldCollations.iterator()
-    while (fieldCollIter.hasNext) {
-      var fieldColl = fieldCollIter.next()
-    }
-    val fieldColl0 = collation.getFieldCollations.get(0)
+//    val fieldCollIter = collation.getFieldCollations.iterator()
+//    while (fieldCollIter.hasNext) {
+//      var fieldColl = fieldCollIter.next()
+//    }
+//    val fieldColl0 = collation.getFieldCollations.get(0)
 
 
     //init variables
@@ -78,9 +78,9 @@ class Sort protected (
 
     // insert input tuples into the priority queue
     var inputIter = input.iterator
-    var count = 0
+    //var count = 0
     while(inputIter.hasNext) {
-      count += 1
+      //count += 1
       var nextInput = inputIter.next()
       pq.enqueue(nextInput)
     }
@@ -99,7 +99,7 @@ class Sort protected (
       // when not specifying fetch, want all available tuples
       nTop = pq.size
     }
-    println(s"nTop = $nTop")
+    //println(s"nTop = $nTop")
     //    outputTuples = IndexedSeq(1 to nTop).map(_=>pq.dequeue)
     for (i <- 1 to nTop) {
       outputTuples = outputTuples :+ pq.dequeue()
