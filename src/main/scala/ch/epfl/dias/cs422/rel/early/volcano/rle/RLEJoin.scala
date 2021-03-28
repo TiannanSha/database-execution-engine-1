@@ -22,6 +22,7 @@ class RLEJoin(
   //val leftHashmap = scala.collection.mutable.HashMap.empty[Tuple, Tuple]
   var allJoinedRLEs = IndexedSeq[RLEentry]()
   var nextTupleInd = 0
+  var nextVid:Long = 0
 
   def getKeyAsTuple(tuple: Tuple, keyIndices:IndexedSeq[Int]): Tuple = {
     var key = IndexedSeq[Any]()
@@ -32,9 +33,11 @@ class RLEJoin(
   }
 
   def joinTwoRLE(rle1:RLEentry, rle2:RLEentry): RLEentry = {
-    RLEentry(rle1.startVID,
-      scala.math.min(rle1.length, rle2.length),
+    var newRle = RLEentry(nextVid,
+      rle1.length * rle2.length,
       rle1.value++rle2.value)
+    nextVid += rle1.length * rle2.length
+    newRle
   }
 
   /**
@@ -46,6 +49,7 @@ class RLEJoin(
     var leftHashmap = scala.collection.mutable.HashMap.empty[Tuple, IndexedSeq[RLEentry]]
     nextTupleInd = 0
     allJoinedRLEs = IndexedSeq[RLEentry]()
+    nextVid = 0
     //var leftTuples = IndexedSeq[Tuple]()
 
     // store all tuples from left table to the hash table
